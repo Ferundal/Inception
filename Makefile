@@ -10,13 +10,36 @@
 #                                                                              #
 # **************************************************************************** #
 
+DOCKER-COMPOSE_YML=		srcs/docker-compose.yml
 
-all:			inception
+DOCKER-COMPOSE_YML_B=
 
-inception:
-				docker compose up -d
+all:					inception
+
+inception:				build up
+
+bonus:
+
+build:
+						docker-compose -f ${DOCKER-COMPOSE_YML} build
+
+up:
+						docker-compose -f ${DOCKER-COMPOSE_YML} up -d
+
+ps:
+						docker-compose -f ${DOCKER-COMPOSE_YML} ps
 
 stop:
-				docker compose stop
+						docker-compose -f ${DOCKER-COMPOSE_YML} stop
 
-.PHONY:			all inception stop
+restart:				stop up
+
+rebuild:				clean build up
+
+clean:
+						docker-compose -f ${DOCKER-COMPOSE_YML} down
+
+fclean:
+						docker-compose -f ${DOCKER-COMPOSE_YML} down --volumes
+
+.PHONY:					all inception bonus up ps stop re clean fclean

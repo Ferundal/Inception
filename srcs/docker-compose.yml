@@ -1,16 +1,60 @@
-version: "3.9"
+version: "3.8"
 
-services:
-  nginx:
-    container_name: nginx
-    build: ./requirements/nginx
-    ports:
-      - "443:443"
-    networks:
-      - inception-net
-
-
+volumes:
+  wp:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${VOLUMES_DIR}/${VOLUME_WP_DIR_NAME}
+  db:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${VOLUMES_DIR}/${VOLUME_DB_DIR_NAME}
 
 networks:
-  inception-net:
+  my-net:
     driver: bridge
+
+services:
+  mariadb:
+    build: ./requirements/mariadb
+    container_name: mariadb
+    networks:
+      - my-net
+    volumes:
+      - db:/var/lib/mysql
+    env_file:
+      - .env
+    restart: always
+    tty:
+      true
+
+  wordpress:
+    build: ./requirements/wordpress
+    container_name: wordpress
+    networks:
+      - my-net
+    volumes:
+      - wp:/var/www/html
+    env_file:
+      - .env
+    restart: always
+    depends_on:
+      - mariadb
+    tty: true
+
+  nginx:
+    build: ./requirements/nginx
+    container_name: nginx
+    ports:
+      - 443:443
+    volumes:
+      - wp:/var/www/html
+    networks:
+      - my-net
+    restart: always
+    depends_on:
+      - wordpress
